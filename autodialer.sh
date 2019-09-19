@@ -1,21 +1,20 @@
 #!/bin/bash
 PATH=/etc:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-AUTODIALER_VERSION_FULL="0.30(12.09.2019)"
-AUTODIALER_VERSION=$(echo $AUTODIALER |awk 'BEGIN {FS="("} {print $1}')
-user="autodialer"
-pass="autodialer"
-db="autodialer"
+AUTODIALER_VERSION_FULL="0.39(19.09.2019)"
+AUTODIALER_VERSION=$(echo $AUTODIALER_VERSION_FULL |awk 'BEGIN {FS="("} {print $1}')
 DATE=$(date +%Y%m%d%H%M)
+[ "$1" = "-v" -o "$1" = "-V" ] && echo -en "Autodialer version: \033[32m$AUTODIALER_VERSION\033[0m\r\n" && exit 0;
+[ -z `find . -type f -name "autodialer.conf"` ] && echo "Файла конфигурации autodialer.conf не существует!
+Создайте файл конфигурации рядом со скриптом $0 и внесите в него параметры подключение к б\д в формате:
+db_user='user'
+db_pass='pass'
+db='db_autodialer'" && exit 0;
+Path=$(pwd)
+source $Path/autodialer.conf
 
-[ "$1" = -V -o "$1" = -v ] && echo -en "Autodialer version: \033[32m$AUTODIALER_VERSION\033[0m\r\n" && exit 0;
 
 ### Functions ###
-Help () {
-    sed -i "s/^karagi4@yandex.ru: autodialer version.*/karagi4@yandex.ru: Welcome (wel) version: $AUTODIALER_VERSION_FULL/" $0
-    grep -i "^Описание команд:" -A1000 $0 | less
-}
-
 campy () {
     campaign=$1
     retry=$2
@@ -36,7 +35,7 @@ campy () {
     echo "$d"
 
     sqlread="select concat(number,',',camp) from autodialer.$campaign where status in ('$answer_status', 'NOANS', 'BUSY', 'NOANSWER', 'CONGESTION') order by RAND() limit $limit"
-    RES=`mysql -h127.0.0.1 -u $user -p$pass --skip-column-names --default-character-set=utf8 $db -e "$sqlread"`
+    RES=`mysql -h127.0.0.1 -u $db_user -p$db_pass --skip-column-names --default-character-set=utf8 $db -e "$sqlread"`
 
     printf "$RES" >> $d
     echo "" >> $d
@@ -79,40 +78,53 @@ done < $d
 
 case $1 in
      "")
-          campaigns=$(mysql -u$user -p$pass -se "select campname from autodialer.campaign")
+          echo -e "Синтаксис:\n$0 -a => Обычный запуск, прозвон по всем кампаниям\n$0 -t => Запуск создания Call файлов на определенное время\дату для всех кампаний
+$0 CampTest => Запуск прозвона для компании CampTest\n$0 CampTest -t Запуск создания Call файлов на определенное время\дату для компании CampTest"
+          ;;
+     "-a")
+          campaigns=$(mysql -u$db_user -p$db_pass -se "select campname from autodialer.campaign")
           campaigns=($(echo $campaigns))
           ;;
-     "?"|"-?"|"help")
-          Help
+     "-t")
+          Tdate="-t"
+          campaigns=$(mysql -u$db_user -p$db_pass -se "select campname from autodialer.campaign")
+          campaigns=($(echo $campaigns))
           ;;
      *)
           campaigns=($(echo $1))
           ;;
 esac
 
+if [ "$2" = "-t" ]; then
+    Tdate="-t"
+else
+    Tdate=""
+fi
 
 for i in ${campaigns[@]};
 do
-    retry=$(mysql -u$user -p$pass -se "select retry from $db.campaign where campname='$i'")
-    pause=$(mysql -u$user -p$pass -se "select pause from $db.campaign where campname='$i'")
-    timeout=$(mysql -u$user -p$pass -se "select timeout from $db.campaign where campname='$i'")
-    concurrent=$(mysql -u$user -p$pass -se "select concurrent from $db.campaign where campname='$i'")
-    limit=$(mysql -u$user -p$pass -se "select str_limit from $db.campaign where campname='$i'")
-    dest=$(mysql -u$user -p$pass -se "select exten from $db.campaign where campname='$i'")
-    chcon=$(mysql -u$user -p$pass -se "select chan_context from $db.campaign where campname='$i'")
-    extcon=$(mysql -u$user -p$pass -se "select ext_context from $db.campaign where campname='$i'")
-    callerid=$(mysql -u$user -p$pass -se "select callerid from $db.campaign where campname='$i'")
-    callerid_name=$(mysql -u$user -p$pass -se "select fullname from $db.campaign where campname='$i'")
-    answer_status=$(mysql -u$user -p$pass -se "select answer_status from $db.campaign where campname='$i'")
-    Account=$(mysql -u$user -p$pass -se "select account from $db.campaign where campname='$i'")
+    Check=$(mysql -uautodialer -pautodialer -se "select campname from $db.campaign where campname='$i'")
+    [ -z $Check ] && echo "Название кампании $i указано не верно!" && exit 0;
+    retry=$(mysql -u$db_user -p$db_pass -se "select retry from $db.campaign where campname='$i'")
+    pause=$(mysql -u$db_user -p$db_pass -se "select pause from $db.campaign where campname='$i'")
+    timeout=$(mysql -u$db_user -p$db_pass -se "select timeout from $db.campaign where campname='$i'")
+    concurrent=$(mysql -u$db_user -p$db_pass -se "select concurrent from $db.campaign where campname='$i'")
+    limit=$(mysql -u$db_user -p$db_pass -se "select str_limit from $db.campaign where campname='$i'")
+    dest=$(mysql -u$db_user -p$db_pass -se "select exten from $db.campaign where campname='$i'")
+    chcon=$(mysql -u$db_user -p$db_pass -se "select chan_context from $db.campaign where campname='$i'")
+    extcon=$(mysql -u$db_user -p$db_pass -se "select ext_context from $db.campaign where campname='$i'")
+    callerid=$(mysql -u$db_user -p$db_pass -se "select callerid from $db.campaign where campname='$i'")
+    callerid_name=$(mysql -u$db_user -p$db_pass -se "select fullname from $db.campaign where campname='$i'")
+    answer_status=$(mysql -u$db_user -p$db_pass -se "select answer_status from $db.campaign where campname='$i'")
+    Account=$(mysql -u$db_user -p$db_pass -se "select account from $db.campaign where campname='$i'")
     [ "${callerid}" = "NULL" -o "${callerid}" = "" -o "${callerid}" = "0" ] && callerid="$number"
     [ "${limit}" = "NULL" -o "${limit}" = "" -o "${limit}" = "0" ] && limit="100"
     [ "${answer_status}" != "NULL" -o "${answer_status}" != "" -o "${answer_status}" != "0" ] && answer_status="ANSWER"
-    if [ "$2" != "" ]; then
-        ad_month=$(mysql -u$user -p$pass -se "select ad_month from $db.campaign where campname='$i'")
-        ad_date=$(mysql -u$user -p$pass -se "select ad_date from $db.campaign where campname='$i'")
-        ad_time=$(mysql -u$user -p$pass -se "select ad_time from $db.campaign where campname='$i'")
-        ad_day=$(mysql -u$user -p$pass -se "select ad_day from $db.campaign where campname='$i'")
+    if [ "$Tdate" = "-t" ]; then
+        ad_month=$(mysql -u$db_user -p$db_pass -se "select ad_month from $db.campaign where campname='$i'")
+        ad_date=$(mysql -u$db_user -p$db_pass -se "select ad_date from $db.campaign where campname='$i'")
+        ad_time=$(mysql -u$db_user -p$db_pass -se "select ad_time from $db.campaign where campname='$i'")
+        ad_day=$(mysql -u$db_user -p$db_pass -se "select ad_day from $db.campaign where campname='$i'")
         [ ${#ad_month} = "1" ] && ad_month=0$ad_month
         [ "$ad_month" -gt "12" -o "$ad_month" = "" -o "$ad_month" = 00 -o "${#ad_month}" -ne 2 ] && continue
         [ ${#ad_date} = "1" ] && ad_date=0$ad_date
@@ -131,7 +143,7 @@ do
                 ad_month=${call_date:4:2}
                 ad_date=${call_date:6:2}
                 ad_time=${call_date:8:4}
-                mysql -u$user -p$pass -se "UPDATE $db.campaign SET ad_month='$ad_month',ad_date='$ad_date',ad_time='$ad_time' WHERE campname='$i'" > /dev/null
+                mysql -u$db_user -p$db_pass -se "UPDATE $db.campaign SET ad_month='$ad_month',ad_date='$ad_date',ad_time='$ad_time' WHERE campname='$i'" > /dev/null
                 campy "$i" "$retry" "$pause" "$timeout" "$concurrent" "$limit" "$dest" "$chcon" "$extcon" "$call_date" "$callerid" "$ad_day" "$callerid_name" "$Account"
             fi
 ### периоды времени в разработке
@@ -154,31 +166,3 @@ do
 done
 
 
-
-#***********************
-# Help
-
-<< ////
-Описание команд:
-karagi4@yandex.ru: Welcome (wel) version: 
-1) Узнать версию: ./autodialer.sh -?
-2) Запустить для всех компаний: ./autodialer.sh
-3) Запустить для определенной группы, например Test: ./autodialer.sh "Test"
-4) Запустить создания Call файлов на определенную дату: ./autodialer.sh "" "1"
-
-Описание:
-1) Скрипт управления запуском прозвона по времени
-Скрипт autodialer.sh обращается в б\д и выбирает нужные значения, проверяя их на ошибки, также задает переменные дат прозвона и создает Call файлы
-Для автоматизации, скрипт нужно добавить в cron для запуска каждую минуту
-crontab -e
-*/1 * * * * /etc/asterisk/scripts/autodialer.sh "" "1"
-
-Список изменений версии:
-- Добавлен параметр Account для автоответа на телефонных аппаратах
-- Добавлена функция запуска справки
-
-### В планах
-# Установка
-# Периоды времени
-
-////

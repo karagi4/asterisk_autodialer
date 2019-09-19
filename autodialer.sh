@@ -1,7 +1,7 @@
 #!/bin/bash
 PATH=/etc:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-AUTODIALER_VERSION_FULL="0.40(19.09.2019)"
+AUTODIALER_VERSION_FULL="0.41(19.09.2019)"
 AUTODIALER_VERSION=$(echo $AUTODIALER_VERSION_FULL |awk 'BEGIN {FS="("} {print $1}')
 DATE=$(date +%Y%m%d%H%M)
 Path=$(dirname $0)
@@ -130,7 +130,7 @@ do
         [ ${#ad_date} = "1" ] && ad_date=0$ad_date
         [ "$ad_date" -gt 31 -o "$ad_date" = "" -o "$ad_date" = 00 -o "${#ad_date}" -ne 2 ] && continue
         [ "${ad_time:0:2}" -gt 23 -o "${ad_time:2}" -gt 59 -o "$ad_time" = "" -o "${#ad_time}" -ne 4 ] && continue
-        if [ "$ad_day" -gt 0 ]; then
+        if [ -n "$ad_day" ] && [ $ad_day -gt 0 ]; then
             call_date=$ad_month$ad_date$ad_time
             if [ "${DATE:4}" -le "$call_date" ]; then
                  campy "$i" "$retry" "$pause" "$timeout" "$concurrent" "$limit" "$dest" "$chcon" "$extcon" "$call_date" "$callerid" "$ad_day" "$callerid_name" "$Account"

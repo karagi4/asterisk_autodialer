@@ -1,16 +1,16 @@
 #!/bin/bash
 PATH=/etc:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-AUTODIALER_VERSION_FULL="0.39(19.09.2019)"
+AUTODIALER_VERSION_FULL="0.40(19.09.2019)"
 AUTODIALER_VERSION=$(echo $AUTODIALER_VERSION_FULL |awk 'BEGIN {FS="("} {print $1}')
 DATE=$(date +%Y%m%d%H%M)
+Path=$(dirname $0)
 [ "$1" = "-v" -o "$1" = "-V" ] && echo -en "Autodialer version: \033[32m$AUTODIALER_VERSION\033[0m\r\n" && exit 0;
-[ -z `find . -type f -name "autodialer.conf"` ] && echo "Файла конфигурации autodialer.conf не существует!
+[ -z `find $Path/autodialer.conf -type f -name "autodialer.conf"` ] && echo "Файла конфигурации autodialer.conf не существует!
 Создайте файл конфигурации рядом со скриптом $0 и внесите в него параметры подключение к б\д в формате:
 db_user='user'
 db_pass='pass'
 db='db_autodialer'" && exit 0;
-Path=$(pwd)
 source $Path/autodialer.conf
 
 
@@ -164,5 +164,4 @@ do
         campy "$i" "$retry" "$pause" "$timeout" "$concurrent" "$limit" "$dest" "$chcon" "$extcon" "" "$callerid" "" "$callerid_name" "$Account"
     fi
 done
-
 

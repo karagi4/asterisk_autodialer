@@ -221,6 +221,84 @@ exten => _89XXXXXXXXX,1,NoOp(Мобильный вызов ${CALLERID(num)} -> $
  same => n,Dial(SIP/trunk_out/0${EXTEN})
 
 
+Конфиг для autodialer
+vi /etc/asterisk/extensions_autodialer.conf
+; ПРИМЕЧАНИЕ: Для теста, в меню используется синтезатор речи Festival, вы можете записать качественное аудио и заменить строки со ссылками на ваши аудиофайлы
+[autodialer]
+exten => s,1,NoOp(Настройка Авто-прозвона)
+ same => n,Answer()
+ same => n,Festival('-. Нажмите -. 1 -. чтобы -. выполнить -. прозвон -. один раз -. 2 -. настроить -. регулярный --. прозвон -. или -. 3 -. за-писать -. сообщение ')
+ same => n,Playback(beep)
+ same => n,WaitExten(7)
+ exten => 1,1,Goto(once_ad,1)
+ exten => 2,1,Goto(reg_ad,1)
+ exten => 3,1,Goto(sound_ad,1)
+ exten => i,1,Playback(pbx-invalid)
+ exten => i,n,Goto(autodialer,s,1)
+ exten => t,1,Goto(autodialer,s,1)
+
+exten => once_ad,1,NoOp(Выбран прозвон один раз)
+ same => n,Festival('После -. сигнала -. введите -. номер -. группы -. и -. нажмите -. решётку ')
+ same => n,Read(ID_GROUP,beep)
+ same => n,Set(ID_GROUP=${FILTER(0-9,${ID_GROUP})})
+ same => n,Set(NAME_GROUP=${AD_GROUP(${ID_GROUP})})
+ same => n,GotoIf($[${ODBCROWS}<=0]?invalid_queue,1)
+ same => n,Festival('-. Прозвон -. запущен ')
+ same => n,System(/etc/asterisk/scripts/autodialer.sh ${NAME_GROUP})
+ same => n,Hangup()
+
+exten => reg_ad,1,NoOp(Настройка регулярного прозвона)
+ same => n,Festival('После -. сигнала -. введите -. номер -. группы -. и -. нажмите -. решётку ')
+ same => n,Read(ID_GROUP,beep)
+ same => n,Set(ID_GROUP=${FILTER(0-9,${ID_GROUP})})
+ same => n,Set(NAME_GROUP=${AD_GROUP(${ID_GROUP})})
+ same => n,GotoIf($[${ODBCROWS}<=0]?invalid_queue,1)
+ same => n,Goto(ad_month,1)
+
+exten => ad_month,1,Festival('-. После -. сигнала -. введите -. цифру -. месяца для на-ча-ла -. прозвона -. нажмите -. решётку ')
+ same => n,Read(AD_MONTH,beep)
+ same => n,Set(AD_MONTH=${FILTER(0-9,${AD_MONTH})})
+ same => n,GotoIf($[${LEN(${AD_MONTH})}>2]?ad_month,1)
+ same => n,GotoIf($[${AD_MONTH}<=0]?ad_month,1)
+ same => n,GotoIf($[${AD_MONTH}>12]?ad_month,1:ad_date,1)
+
+exten => ad_date,1,Festival('После -. сигнала -. введите -. число -. месяца -. для -. нача-ла -. прозвона -. нажмите -. решётку ')
+ same => n,Read(AD_DATE,beep)
+ same => n,Set(AD_DATE=${FILTER(0-9,${AD_DATE})})
+ same => n,GotoIf($[${LEN(${AD_DATE})}>2]?ad_date,1)
+ same => n,GotoIf($[${LEN(${AD_DATE})}<=0]?ad_date,1)
+ same => n,GotoIf($[${AD_DATE}>31]?ad_date,1:ad_time,1)
+
+exten => ad_time,1,Festival('После -. сигнала -. введите -. время -. нача-ла -. прозвона -. в -. формате -. 0 -. часов -. 0 -. минут -. без -. разделителей -. нажмите -. решётку ')
+ same => n,Read(AD_TIME,beep)
+ same => n,Set(AD_TIME=${FILTER(0-9,${AD_TIME})})
+ same => n,GotoIf($[${LEN(${AD_TIME})}>4]?ad_time,1)
+ same => n,GotoIf($[${LEN(${AD_TIME})}<4]?ad_time,1)
+ same => n,GotoIf($[${AD_TIME:0:2}>23]?ad_time,1)
+ same => n,GotoIf($[${AD_TIME:-2}>59]?ad_time,1)
+
+ same => n,Festival('После -. сигнала -. введите -. количество -. дней -. до следующего -. прозвона -. или -. введите -. 0 -. если -. повторы -. не -. требуются -. нажмите -. решётку ')
+ same => n,Read(AD_DAY,beep)
+ same => n,Set(AD_DAY=${FILTER(0-9,${AD_DAY})})
+ same => n,Set(AD_GROUP(${NAME_GROUP},${AD_MONTH},${AD_DATE},${AD_TIME},${AD_DAY})='')
+ same => n,Festival('-. Настройка -. завершена ')
+ same => n,Hangup()
+
+exten => sound_ad,1,NoOp(Запись сообщения для прозвона)
+ same => n,Festival('После -. сигнала -. введите -. номер -. группы -. нажмите -. решётку ')
+ same => n,Read(ID_GROUP,beep)
+ same => n,Set(ID_GROUP=${FILTER(0-9,${ID_GROUP})})
+ same => n,Set(NAME_GROUP=${AD_GROUP(${ID_GROUP})})
+ same => n,GotoIf($[${ODBCROWS}<=0]?invalid_queue,1)
+ same => n,Festival('-. Говорите -. после -. сигнала -. для -. завершения -. записи -. нажмите -. решетку -. после -. этого -. вы -. сможете -. прослушать -. запись ')
+ same => n,Playback(beep)
+ same => n,Record(custom/${NAME_GROUP}:gsm)
+ same => n,Festival('-. Запись -. завершена ')
+ same => n,Wait(1)
+ same => n,Playback(custom/${NAME_GROUP})
+ same => n,Hangup()
+
+
 Сценарии создания Call файлов
 1) Скрипт управления запуском прозвона по времени
 Скрипт autodialer.sh обращается в б\д и выбирает нужные значения, проверяя их на ошибки, также задает переменные дат прозвона и создает Call файлы
@@ -258,7 +336,37 @@ SIPAddHeader(Call-Info:\;Answer-After=0)
 SIPAddHeader(P-Auto-Answer: normal)
 SIPAddHeader(Answer-Mode: Auto) ; Avaya 9608-9611G
 
-Источник информации:http://blog.koobik.net/asterisk-emergency-notification-system/
+Источник информации: http://blog.koobik.net/asterisk-emergency-notification-system/
 
 Для AudioCodes 420HD это делается через меню Management — Manual Update — Configuration file. Нужно найти параметр voip/auto_answer/enabled и установить ему значение 1.
 Для GrandStream GXP-1625 настройка немного проще: Accounts — Account X — Call Settings — Allow Auto Answer by Call-Info «YES».
+
+В примере я использовал Avaya 9608G, на ней нужно прописать опцию (возможно её можно настроить и на самом т\а) в конфиге на HTTP сервере, который использует телефон Avaya/SIP 46xxsettings.txt, добавить опцию
+SET HEADSYS 0
+
+Далее добавить в диалплан опцию для телефона
+vi /etc/asterisk/extensions_custom.conf
+exten => _XXX,1,NoOp(Внутренний вызов с ${CALLERID(num)} -> на номер ${EXTEN})
+ same => n,SET(NUM_TO_CHECK=${EXTEN})
+ same => n,Gosub(check_blf_redirect,s,1)
+ same => n,AGI(/etc/asterisk/scripts/agi_set_name.sh.x, ${CALLERID(name)})
+ same => n,Set(CALLERID(name)=${cid_name})
+ same => n,Set(CALLER-ID=${CALLERID(num)})
+ same => n,Set(DIR=IN)
+ same => n,Set(EXT=${EXTEN})
+ same => n,Gosub(call_record,s,1(${EXTEN}))
+ same => n,ExecIF($[ "${CALLERID(name)}" == "Answer-Mode: Auto" ]?SIPAddHeader(Answer-Mode: Auto)); Avaya 9608G
+ same => n,Dial(SIP/${EXT})
+ same => n,Goto(s-${DIALSTATUS},1)
+
+Далее, для того чтобы опция (same => n,ExecIF($[ "${CALLERID(name)}" == "Answer-Mode: Auto" ]?SIPAddHeader(Answer-Mode: Auto)); Avaya 9608G) отработала её еще нужно внести в б\д, в нужной компании в поле fullname, в принципе вы можете задать там любое значение , например, имя кампании или имя телефонов avaya, только поменяйте тогда условие в диалплане на нужное!
+
+Источник вдохновения
+https://asterisk-pbx.ru/wiki/soft/call_center/asterisk_autodialer
+
+
+В РАЗРАБОТКЕ:
+1) Добавить возморжность прозвона по часам, через нескольео часов, интервал обзвона (складывать минуты и часы)
+2) Добавить статусы ответов с отправкой на email в случае, если абонент не ответил (установка postfix)
+3) Частичная установка ПО автопрозвона скриптом autodialer.sh (autodialer.sh -I)
+4) Добавление групп и импорт номеров в б\д скриптом autodialer.sh (autodialer.sh -igr Test и autodialer.sh -ixml Test /tmp/campname.csv)

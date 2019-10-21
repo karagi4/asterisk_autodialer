@@ -171,6 +171,7 @@ max_connections => 100
 Настройка диалплана
 vi /etc/asterisk/extensions_custom.conf
 Тут лучше настроить, чтобы для autodialer подгружался дополнительный конфиг, но это не принципиально
+```
 ; В начале файла подключим новый конфиг
 #include "extensions_autodialer.conf"
 
@@ -229,11 +230,12 @@ exten => _89XXXXXXXXX,1,NoOp(Мобильный вызов ${CALLERID(num)} -> $
  same => n,Gosub(call_record,s,1(${EXTEN}))
 
  same => n,Dial(SIP/trunk_out/0${EXTEN})
-
+```
 
 Конфиг для autodialer
 vi /etc/asterisk/extensions_autodialer.conf
 ; ПРИМЕЧАНИЕ: Для теста, в меню используется синтезатор речи Festival, вы можете записать качественное аудио и заменить строки со ссылками на ваши аудиофайлы
+```
 [autodialer]
 exten => s,1,NoOp(Настройка Авто-прозвона)
  same => n,Answer()
@@ -307,7 +309,7 @@ exten => sound_ad,1,NoOp(Запись сообщения для прозвона
  same => n,Wait(1)
  same => n,Playback(custom/${NAME_GROUP})
  same => n,Hangup()
-
+```
 
 Сценарии создания Call файлов
 1) Скрипт управления запуском прозвона по времени
@@ -356,6 +358,7 @@ SET HEADSYS 0
 
 Далее добавить в диалплан опцию для телефона
 vi /etc/asterisk/extensions_custom.conf
+```
 exten => _XXX,1,NoOp(Внутренний вызов с ${CALLERID(num)} -> на номер ${EXTEN})
  same => n,SET(NUM_TO_CHECK=${EXTEN})
  same => n,Gosub(check_blf_redirect,s,1)
@@ -368,6 +371,7 @@ exten => _XXX,1,NoOp(Внутренний вызов с ${CALLERID(num)} -> на
  same => n,ExecIF($[ "${CALLERID(name)}" == "Answer-Mode: Auto" ]?SIPAddHeader(Answer-Mode: Auto)); Avaya 9608G
  same => n,Dial(SIP/${EXT})
  same => n,Goto(s-${DIALSTATUS},1)
+ ```
 
 Далее, для того чтобы опция (same => n,ExecIF($[ "${CALLERID(name)}" == "Answer-Mode: Auto" ]?SIPAddHeader(Answer-Mode: Auto)); Avaya 9608G) отработала её еще нужно внести в б\д, в нужной компании в поле fullname, в принципе вы можете задать там любое значение , например, имя кампании или имя телефонов avaya, только поменяйте тогда условие в диалплане на нужное!
 

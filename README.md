@@ -1,4 +1,4 @@
-# autodialer README
+# autodialer README v "0.41(19.09.2019)"
 Bash Asterisk autodialer script
 
 Создадим б\д
@@ -241,7 +241,7 @@ crontab -e
 Запуск создания Call файлов на определенное время\дату для компании CampTest
 ./autodialer.sh CampTest -t
 
-Запуск создания Call файлов на определенную дату
+Запуск создания Call файлов на определенную дату для всех кампаний
 ./autodialer.sh -t
 
 

@@ -7,7 +7,7 @@ grant all privileges on autodialer.* to autodialer@localhost identified by 'auto
 flush privileges;
 
 Создание таблицы групп
-CREATE TABLE IF NOT EXISTS `campaign` (
+```CREATE TABLE IF NOT EXISTS `campaign` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `campname` varchar(64) DEFAULT NULL,
   `chan_context` varchar(16) DEFAULT NULL,
@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `campaign` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `camp` (`campname`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+```
 
 Вставка параметров для группы Test в таблицу campaign
 INSERT INTO `autodialer`.`campaign` (`id`, `campname`, `chan_context`, `retry`, `pause`, `timeout`, `ext_context`, `exten`, `concurrent`, `ad_month`, `ad_date`, `ad_time`, `ad_day`, `callerid`, `fullname`, `answer_status`) VALUES ('', 'Test', 'outcalling', '2', '15', '10', 'Test', 's', '2', '08', '22', '0800', '', '', '', '1'); SELECT LAST_INSERT_ID();

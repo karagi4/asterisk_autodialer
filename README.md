@@ -7,7 +7,8 @@ grant all privileges on autodialer.* to autodialer@localhost identified by 'auto
 flush privileges;
 
 Создание таблицы групп
-```CREATE TABLE IF NOT EXISTS `campaign` (
+```
+CREATE TABLE IF NOT EXISTS `campaign` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `campname` varchar(64) DEFAULT NULL,
   `chan_context` varchar(16) DEFAULT NULL,

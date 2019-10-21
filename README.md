@@ -2,9 +2,11 @@
 Bash Asterisk autodialer script
 
 Создадим б\д
+```
 create database autodialer;
 grant all privileges on autodialer.* to autodialer@localhost identified by 'autodialer';
 flush privileges;
+```
 
 Создание таблицы групп
 ```
@@ -35,7 +37,9 @@ CREATE TABLE IF NOT EXISTS `campaign` (
 ```
 
 Вставка параметров для группы Test в таблицу campaign
+```
 INSERT INTO `autodialer`.`campaign` (`id`, `campname`, `chan_context`, `retry`, `pause`, `timeout`, `ext_context`, `exten`, `concurrent`, `ad_month`, `ad_date`, `ad_time`, `ad_day`, `callerid`, `fullname`, `answer_status`) VALUES ('', 'Test', 'outcalling', '2', '15', '10', 'Test', 's', '2', '08', '22', '0800', '', '', '', '1'); SELECT LAST_INSERT_ID();
+```
 
 Описание некоторых полей б\д:
 1 - имя кампании (бд\тн autodialer.Test)
@@ -75,6 +79,7 @@ mysql -p
 grant file on *.* to autodialer@localhost identified by 'autodialer';
 
 Проверьте привилегии каталога.
+```
 mysql> SHOW VARIABLES LIKE "secure_file_priv";
 +------------------+-------+
 | Variable_name    | Value |
@@ -95,6 +100,7 @@ CREATE TABLE IF NOT EXISTS autodialer.`Test` (
 PRIMARY KEY (`id`),
 UNIQUE KEY `number` (`number`,`camp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
 
 Импорт номеров из csv файла
 Когда кампания создана, импортируйте телефонные номера из файла формата csv.
@@ -111,6 +117,7 @@ UNIQUE KEY `number` (`number`,`camp`)
 Имя может быть передано как CALLERID(name) из call file и отображаться агенту, который получил вызов.
 Если файл /tmp/campname.csv загружен из Windows, то используйте другой разрыв строки в праметре LINES TERMINATED BY '\r\n'
 Команда импорта номеров для группы Test
+```
 LOAD DATA LOCAL INFILE '/tmp/campname.csv'
 IGNORE INTO TABLE autodialer.`Test`
 CHARACTER SET UTF8
@@ -118,6 +125,7 @@ FIELDS TERMINATED BY ','
 OPTIONALLY ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 (`number`, `name`) set `camp` = 'Test', `status` = 'NOANS';
+```
 
 Связка autodialer с Asterisk
 Если не настроено подключение, то пропишите его

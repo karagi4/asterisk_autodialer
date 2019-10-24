@@ -1,4 +1,4 @@
-# autodialer README v "0.41(19.09.2019)"
+# autodialer v"1.1(24.10.2019)" README:
 Bash Asterisk autodialer script
 
 Создадим б\д

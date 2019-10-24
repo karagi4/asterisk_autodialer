@@ -1,7 +1,7 @@
 #!/bin/bash
 PATH=/etc:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-AUTODIALER_VERSION_FULL="0.42(23.10.2019)"
+AUTODIALER_VERSION_FULL="1.1(24.10.2019)"
 AUTODIALER_VERSION=$(echo $AUTODIALER_VERSION_FULL |awk 'BEGIN {FS="("} {print $1}')
 DATE=$(date +%Y%m%d%H%M)
 Path=$(dirname $0)
@@ -35,8 +35,7 @@ campy () {
     echo "$d"
 
     sqlread="select concat(number,',',camp) from autodialer.$campaign where status in ('$answer_status', 'NOANS', 'BUSY', 'NOANSWER', 'CONGESTION') order by RAND() limit $limit"
-    RES=`mysql -h127.0.0.1 -u $db_user -p$db_pass --skip-column-names --default-character-set=utf8 $db -e "$sqlread"`
-    RES=$(echo $RES |sed 's#\ ##g')
+    RES=`mysql -h127.0.0.1 -u $db_user -p$db_pass --skip-column-names --default-character-set=utf8 $db -e "$sqlread" |sed 's/ ,/,/g'`
 
     printf "$RES" >> $d
     echo "" >> $d
@@ -79,7 +78,7 @@ done < $d
 
 case $1 in
      "")
-          echo -e "Синтаксис:\n$0 -a => Обычный запуск, прозвон по всем кампаниям\n$0 -t => Запуск создания Call файлов на определенное время\дату для всех кампаний
+          echo -e "Autodialer version: \033[32m$AUTODIALER_VERSION\033[0m\r\nСинтаксис:\n$0 -a => Обычный запуск, прозвон по всем кампаниям\n$0 -t => Запуск создания Call файлов на определенное время\дату для всех кампаний
 $0 CampTest => Запуск прозвона для компании CampTest\n$0 CampTest -t Запуск создания Call файлов на определенное время\дату для компании CampTest"
           ;;
      "-a")
@@ -165,3 +164,4 @@ do
         campy "$i" "$retry" "$pause" "$timeout" "$concurrent" "$limit" "$dest" "$chcon" "$extcon" "" "$callerid" "" "$callerid_name" "$Account"
     fi
 done
+

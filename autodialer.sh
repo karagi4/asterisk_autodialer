@@ -1,12 +1,12 @@
 #!/bin/bash
 PATH=/etc:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-AUTODIALER_VERSION_FULL="1.1.1(24.10.2019)"
+AUTODIALER_VERSION_FULL="1.2.0(14.11.2019)"
 AUTODIALER_VERSION=$(echo $AUTODIALER_VERSION_FULL |awk 'BEGIN {FS="("} {print $1}')
 DATE=$(date +%Y%m%d%H%M)
 Path=$(dirname $0)
-[ "$1" = "-v" -o "$1" = "-V" ] && echo -en "Autodialer version: \033[32m$AUTODIALER_VERSION\033[0m\r\n" && exit 0;
-[ -z `find $Path/autodialer.conf -type f -name "autodialer.conf"` ] && echo "Файла конфигурации autodialer.conf не существует!
+[ "$1" = "-v" -o "$1" = "-V" ] && echo -en "Autodialer version: \033[32m$AUTODIALER_VERSION_FULL\033[0m\r\n" && exit 0;
+[ -z `find $Path/autodialer.conf -type f -name "autodialer.conf" 2> /dev/null` ] && echo "Файла конфигурации autodialer.conf не существует!
 Создайте файл конфигурации рядом со скриптом $0 и внесите в него параметры подключение к б\д в формате:
 db_user='user'
 db_pass='pass'
@@ -45,7 +45,7 @@ campy () {
     [ -n $callerid ] && Callerid="Callerid: \"$callerid_name\" <$callerid>"
     [ -z $callerid ] && Callerid="Callerid: \"$callerid_name\" <$number>"
 
-    cat <<EOF  >  /var/spool/asterisk/tmp/$camp-$number-$ad_day
+    cat <<EOF  >  $adtmp/$camp-$number-$ad_day
 
 Channel: Local/$number@$chcon/n
 $Callerid
@@ -62,10 +62,11 @@ Account: $Account
 
 EOF
 
-    chown asterisk:asterisk /var/spool/asterisk/tmp/$camp-$number-$ad_day
+    chown asterisk:asterisk $adtmp/$camp-$number-$ad_day
 
-    [ "$call_date" != "" ] && touch -mat $call_date.00 /var/spool/asterisk/tmp/$camp-$number-$ad_day
-    mv /var/spool/asterisk/tmp/$camp-$number-$ad_day  /var/spool/asterisk/outgoing
+    [ "$call_date" != "" ] && touch -mat $call_date.00 $adtmp/$camp-$number-$ad_day
+# В версии < 1.2.0
+#    mv $adtmp/$camp-$number-$ad_day  /var/spool/asterisk/outgoing
 
     echo "$number"
 
@@ -79,21 +80,26 @@ done < $d
 case $1 in
      "")
           echo -e "Autodialer version: \033[32m$AUTODIALER_VERSION\033[0m\r\nСинтаксис:\n$0 -a => Обычный запуск, прозвон по всем кампаниям\n$0 -t => Запуск создания Call файлов на определенное время\дату для всех кампаний
-$0 CampTest => Запуск прозвона для компании CampTest\n$0 CampTest -t Запуск создания Call файлов на определенное время\дату для компании CampTest"
+$0 CampTest => Запуск прозвона для компании CampTest\n$0 CampTest -t Запуск создания Call файлов на определенное время\дату для компании CampTest" && exit
           ;;
      "-a")
+          adtmp=$(mktemp -d /var/spool/asterisk/tmp/.autodialer-XXX)
+          echo $adtmp
           campaigns=$(mysql -u$db_user -p$db_pass -se "select campname from autodialer.campaign")
           campaigns=($(echo $campaigns))
           ;;
      "-t")
+          adtmp=$(mktemp -d /var/spool/asterisk/tmp/.autodialer-XXX)
           Tdate="-t"
           campaigns=$(mysql -u$db_user -p$db_pass -se "select campname from autodialer.campaign")
           campaigns=($(echo $campaigns))
           ;;
      *)
+          adtmp=$(mktemp -d /var/spool/asterisk/tmp/.autodialer-XXX)
           campaigns=($(echo $1))
           ;;
 esac
+
 
 if [ "$2" = "-t" ]; then
     Tdate="-t"
@@ -104,7 +110,7 @@ fi
 for i in ${campaigns[@]};
 do
     Check=$(mysql -uautodialer -pautodialer -se "select campname from $db.campaign where campname='$i'")
-    [ -z $Check ] && echo "Название кампании $i указано не верно!" && exit 0;
+    [ -z $Check ] && echo "Название кампании $i указано не верно!" && rm -rf $adtmp && exit 0;
     retry=$(mysql -u$db_user -p$db_pass -se "select retry from $db.campaign where campname='$i'")
     pause=$(mysql -u$db_user -p$db_pass -se "select pause from $db.campaign where campname='$i'")
     timeout=$(mysql -u$db_user -p$db_pass -se "select timeout from $db.campaign where campname='$i'")
@@ -164,4 +170,10 @@ do
         campy "$i" "$retry" "$pause" "$timeout" "$concurrent" "$limit" "$dest" "$chcon" "$extcon" "" "$callerid" "" "$callerid_name" "$Account"
     fi
 done
+
+# Автонабор
+if [ -d $adtmp ]; then
+mv $adtmp/*  /var/spool/asterisk/outgoing
+rm -rf $adtmp
+fi
 

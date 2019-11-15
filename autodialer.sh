@@ -1,7 +1,7 @@
 #!/bin/bash
 PATH=/etc:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-AUTODIALER_VERSION_FULL="1.2.0(14.11.2019)"
+AUTODIALER_VERSION_FULL="1.3.0(15.11.2019)"
 AUTODIALER_VERSION=$(echo $AUTODIALER_VERSION_FULL |awk 'BEGIN {FS="("} {print $1}')
 DATE=$(date +%Y%m%d%H%M)
 Path=$(dirname $0)
@@ -34,7 +34,7 @@ campy () {
     rm -f  "$campaign"
     echo "$d"
 
-    sqlread="select concat(number,',',camp) from autodialer.$campaign where status in ('$answer_status', 'NOANS', 'BUSY', 'NOANSWER', 'CONGESTION') order by RAND() limit $limit"
+    sqlread="select concat(number,',',camp) from autodialer.$campaign where status in ('$answer_status', 'NOANS', 'BUSY', 'NOANSWER', 'CONGESTION', 'CANCEL') order by RAND() limit $limit"
     RES=`mysql -h127.0.0.1 -u $db_user -p$db_pass --skip-column-names --default-character-set=utf8 $db -e "$sqlread" |sed 's/ ,/,/g'`
 
     printf "$RES" >> $d
@@ -125,7 +125,15 @@ do
     Account=$(mysql -u$db_user -p$db_pass -se "select account from $db.campaign where campname='$i'")
     [ "${callerid}" = "NULL" -o "${callerid}" = "" -o "${callerid}" = "0" ] && callerid="$number"
     [ "${limit}" = "NULL" -o "${limit}" = "" -o "${limit}" = "0" ] && limit="100"
-    [ "${answer_status}" != "NULL" -o "${answer_status}" != "" -o "${answer_status}" != "0" ] && answer_status="ANSWER"
+    case "${answer_status}" in
+     "NULL"|""|"0")
+          answer_status="ANSWER"
+          ;;
+     *)
+          answer_status="NOANS"
+          ;;
+     esac
+
     if [ "$Tdate" = "-t" ]; then
         ad_month=$(mysql -u$db_user -p$db_pass -se "select ad_month from $db.campaign where campname='$i'")
         ad_date=$(mysql -u$db_user -p$db_pass -se "select ad_date from $db.campaign where campname='$i'")

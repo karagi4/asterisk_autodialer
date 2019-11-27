@@ -59,7 +59,7 @@ ad_date - дата начала обзвона
 ad_day - повторять каждые N дней, если указано 0 и дата еще не прошла, то обзвон произойдет один раз и больше повторяться не будет
 callerid - можно указать при желании иначе при обзвоне будет задан тот номер, на который происходит вызов
 str_limit - задать используемое число строк (по умолчанию 100)
-answer_status - 0, пусто или NULL, не учитывать статус дозвона в autodialer.Test (где: Test - имя кампании) или 1 пропускать, если статус ответа "ANSWER"
+answer_status - 0, пусто или NULL, не учитывать статус дозвона в autodialer.Test (где: Test - имя кампании) или 1 пропускать и не звонить, если статус ответа "ANSWER"
 
 
 Настройка сервера Mysql
@@ -230,7 +230,23 @@ exten => _89XXXXXXXXX,1,NoOp(Мобильный вызов ${CALLERID(num)} -> $
  same => n,Gosub(call_record,s,1(${EXTEN}))
 
  same => n,Dial(SIP/trunk_out/0${EXTEN})
+
+;;; Обработка после завершения вызова
+;exten => h,1,ExecIF($[ "${dnumber}" != "" ]?set(ODBC_ANSWER(1,2,3,4)=${dnumber},${campaign},${DIALSTATUS},${time}))
+exten => h,1,ExecIF($[ "${dnumber}" != "" ]?set(ODBC_ANSWER(1,2,3,4)=${dnumber},${campaign},${DIALSTATUS},${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}))
 ```
+
+*Где:
+Обработка после завершения вызова - добавить время ответа или сброса вызова для каждого номера в таблицу autodialer.Test (где: Test - имя кампании)
+
+Внесем изменения для "Обработки после завершения вызова"
+vi /etc/asterisk/func_odbc.conf
+[ANSWER]
+dsn=autodialer
+writesql=UPDATE ${VAL2} SET status='${VAL3}', timestamp='${VAL4}' WHERE camp='${VAL2}' and number='${VAL1}'
+
+Применим изменения
+asterisk -rx "reload"
 
 Конфиг для autodialer
 vi /etc/asterisk/extensions_autodialer.conf

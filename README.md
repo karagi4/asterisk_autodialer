@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS autodialer.`Test` (
 `camp` varchar(32) DEFAULT NULL,
 `status` varchar(32) DEFAULT 'NOANS',
 `agent` varchar(16) DEFAULT NULL,
-`timestamp` varchar(16) DEFAULT NULL,
+`timestamp` varchar(32) DEFAULT NULL,
 PRIMARY KEY (`id`),
 UNIQUE KEY `number` (`number`,`camp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

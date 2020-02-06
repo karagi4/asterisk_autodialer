@@ -233,7 +233,7 @@ exten => _89XXXXXXXXX,1,NoOp(Мобильный вызов ${CALLERID(num)} -> $
 
 ;;; Обработка после завершения вызова
 ;exten => h,1,ExecIF($[ "${dnumber}" != "" ]?set(ODBC_ANSWER(1,2,3,4)=${dnumber},${campaign},${DIALSTATUS},${time}))
-exten => h,1,ExecIF($[ "${dnumber}" != "" ]?set(ODBC_ANSWER(1,2,3,4)=${dnumber},${campaign},${DIALSTATUS},${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}))
+exten => h,1,ExecIF($[ "${dnumber}" != "" ]?set(ODBC_ANSWER(1,2,3,4)=${dnumber},${campaign},${DIALSTATUS},${STRFTIME(${EPOCH},,%d/%m/%Y-%H:%M.%S)}))
 ```
 
 *Где:

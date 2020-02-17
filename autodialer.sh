@@ -185,5 +185,5 @@ mv $adtmp/*  /var/spool/asterisk/outgoing
 rm -rf $adtmp
 fi
 
-# Изменения в $AUTODIALER_VERSION_FULL
+# Изменения в 1.3.1 :
 # добавлен статус CHANUNAVAIL в запрос sqlread

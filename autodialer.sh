@@ -6,7 +6,7 @@ AUTODIALER_VERSION=$(echo $AUTODIALER_VERSION_FULL |awk 'BEGIN {FS="("} {print $
 DATE=$(date +%Y%m%d%H%M)
 Path=$(dirname $0)
 [ "$1" = "-v" -o "$1" = "-V" ] && echo -en "Autodialer version: \033[32m$AUTODIALER_VERSION_FULL\033[0m\r\n" && exit 0;
-[ -z `find $Path/autodialer.conf -type f -name "autodialer.conf" 2> /dev/null` ] && echo -en "Autodialer version: \033[32m$AUTODIALER_VERSION\033[0m\r\nФайла конфигурации autodialer.conf не существует!
+[ -z `find $Path/autodialer.conf -type f -name "autodialer.conf" 2> /dev/null` ] && echo -e "Autodialer version: \033[32m$AUTODIALER_VERSION\033[0m\r\nФайла конфигурации autodialer.conf не существует!
 Создайте файл конфигурации рядом со скриптом $0 и внесите в него параметры подключение к б\д в формате:
 db_user='user'
 db_pass='pass'

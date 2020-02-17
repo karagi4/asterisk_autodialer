@@ -1,7 +1,7 @@
 #!/bin/bash
 PATH=/etc:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-AUTODIALER_VERSION_FULL="1.3.1(17.02.2020)"
+AUTODIALER_VERSION_FULL="1.3.2(17.02.2020)"
 AUTODIALER_VERSION=$(echo $AUTODIALER_VERSION_FULL |awk 'BEGIN {FS="("} {print $1}')
 DATE=$(date +%Y%m%d%H%M)
 Path=$(dirname $0)

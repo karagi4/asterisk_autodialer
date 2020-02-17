@@ -1,7 +1,7 @@
 #!/bin/bash
 PATH=/etc:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-AUTODIALER_VERSION_FULL="1.3.0(15.11.2019)"
+AUTODIALER_VERSION_FULL="1.3.1(17.02.2020)"
 AUTODIALER_VERSION=$(echo $AUTODIALER_VERSION_FULL |awk 'BEGIN {FS="("} {print $1}')
 DATE=$(date +%Y%m%d%H%M)
 Path=$(dirname $0)
@@ -34,7 +34,7 @@ campy () {
     rm -f  "$campaign"
     echo "$d"
 
-    sqlread="select concat(number,',',camp) from autodialer.$campaign where status in ('$answer_status', 'NOANS', 'BUSY', 'NOANSWER', 'CONGESTION', 'CANCEL') order by RAND() limit $limit"
+    sqlread="select concat(number,',',camp) from autodialer.$campaign where status in ('$answer_status', 'NOANS', 'BUSY', 'NOANSWER', 'CONGESTION', 'CANCEL', 'CHANUNAVAIL') order by RAND() limit $limit"
     RES=`mysql -h127.0.0.1 -u $db_user -p$db_pass --skip-column-names --default-character-set=utf8 $db -e "$sqlread" |sed 's/ ,/,/g'`
 
     printf "$RES" >> $d
@@ -185,3 +185,5 @@ mv $adtmp/*  /var/spool/asterisk/outgoing
 rm -rf $adtmp
 fi
 
+# Изменения в $AUTODIALER_VERSION_FULL
+# добавлен статус CHANUNAVAIL в запрос sqlread

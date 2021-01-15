@@ -438,7 +438,7 @@ exten => _XXX,1,NoOp(Внутренний вызов с ${CALLERID(num)} -> на
 https://asterisk-pbx.ru/wiki/soft/call_center/asterisk_autodialer
 
 
-[comment]: #В РАЗРАБОТКЕ:
+[comment]: # В РАЗРАБОТКЕ:
 
 [comment]: #1) Добавить возморжность прозвона по часам, через нескольео часов, интервал обзвона (складывать минуты и часы)
 

@@ -268,11 +268,13 @@ dsn=autodialer
 writesql=UPDATE ${VAL2} SET status='${VAL3}', timestamp='${VAL4}' WHERE camp='${VAL2}' and number='${VAL1}'
 ```
 Применим изменения
-```asterisk -rx "reload"
-```
+
+asterisk -rx "reload"
+
 Конфиг для autodialer
-```vi /etc/asterisk/extensions_autodialer.conf
-```
+
+vi /etc/asterisk/extensions_autodialer.conf
+
 ; ПРИМЕЧАНИЕ: Для теста, в меню используется синтезатор речи Festival, вы можете записать качественное аудио и заменить строки со ссылками на ваши аудиофайлы
 ```
 [autodialer]
@@ -363,8 +365,9 @@ crontab -e
 ```
 Скрипт можно запускать вручную с параметрами запуска
 Обычный запуск, прозвон по всем кампаниям
-```./autodialer.sh -a
-```
+
+./autodialer.sh -a
+
 
 Запуск прозвона для компании CampTest
 

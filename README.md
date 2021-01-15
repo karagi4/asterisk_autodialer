@@ -42,15 +42,23 @@ INSERT INTO `autodialer`.`campaign` (`id`, `campname`, `chan_context`, `retry`, 
 ```
 
 Описание некоторых полей б\д:
- 1 - имя кампании (бд\тн autodialer.Test)
+
+1 - имя кампании (бд\тн autodialer.Test)
 
 2 - число повторов набора номера (бд\тн autodialer.retry)
+
 3 - пауза между повторами (бд\тн autodialer.pause)
+
 4 - длительность вызова (бд\тн autodialer.timeout)
+
 5 - число одновременных вызывов (бд\тн autodialer.concurrent)
+
 6 - используемое число строк(autodialer.str_limit)
+
 7 - направление в диалплане (ответ exten => s...) (бд\тн autodialer.exten)
+
 8 - контекст исходящих (бд\тн autodialer.chan_context)
+
 9 - контекст в extension.conf для ad (бд\тн autodialer.ext_context)
 
 

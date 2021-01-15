@@ -184,6 +184,3 @@ if [ -d $adtmp ]; then
 mv $adtmp/*  /var/spool/asterisk/outgoing
 rm -rf $adtmp
 fi
-
-# Изменения в 1.3.1 :
-# добавлен статус CHANUNAVAIL в запрос sqlread

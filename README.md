@@ -78,20 +78,20 @@ answer_status - 0, пусто или NULL, не учитывать статус 
 
 Настройка сервера Mysql
 Для импорта телефонных номеров из файлов csv, mysql требуется привилегия FILE, т.к. используется метод LOAD DATA INFILE.
-vi /etc/my.cnf
+```vi /etc/my.cnf
 [mysqld]
 secure-file-priv = ""
-
+```
 Перезапустите Mysql сервер.
-systemctl restart mariadb
-
+```systemctl restart mariadb
+```
 Установите привилегии FILE
 Подключитесь к командной строке Mysql.
-mysql -p
-
+```mysql -p
+```
 Установите привилегии.
-grant file on *.* to autodialer@localhost identified by 'autodialer';
-
+````grant file on *.* to autodialer@localhost identified by 'autodialer';
+````
 Проверьте привилегии каталога.
 ```
 mysql> SHOW VARIABLES LIKE "secure_file_priv";
@@ -150,7 +150,7 @@ LINES TERMINATED BY '\n'
 
 Связка autodialer с Asterisk
 Если не настроено подключение, то пропишите его
-vi /etc/odbcinst.ini
+```vi /etc/odbcinst.ini
 [MySQL]
 Description = ODBC for MySQL
 Driver = /usr/lib/libmyodbc5.so
@@ -158,9 +158,9 @@ Setup = /usr/lib/libodbcmyS.so
 Driver64 = /usr/lib64/libmyodbc5.so
 Setup64 = /usr/lib64/libodbcmyS.so
 FileUsage = 1
-
+```
 Создадим коннектор
-vi /etc/odbc.ini
+```vi /etc/odbc.ini
 [MySQL-autodialer]
 Description         = MySQL connection to db autodialer
 Driver              = MySQL
@@ -187,10 +187,11 @@ username        => autodialer
 password        => autodialer
 pre-connect     => yes
 max_connections => 100
-
+```
 
 Настройка диалплана
-vi /etc/asterisk/extensions_custom.conf
+```vi /etc/asterisk/extensions_custom.conf
+```
 Тут лучше настроить, чтобы для autodialer подгружался дополнительный конфиг, но это не принципиально
 ```
 ; В начале файла подключим новый конфиг
@@ -261,16 +262,17 @@ exten => h,1,ExecIF($[ "${dnumber}" != "" ]?set(ODBC_ANSWER(1,2,3,4)=${dnumber},
 Обработка после завершения вызова - добавить время ответа или сброса вызова для каждого номера в таблицу autodialer.Test (где: Test - имя кампании)
 
 Внесем изменения для "Обработки после завершения вызова"
-vi /etc/asterisk/func_odbc.conf
+```vi /etc/asterisk/func_odbc.conf
 [ANSWER]
 dsn=autodialer
 writesql=UPDATE ${VAL2} SET status='${VAL3}', timestamp='${VAL4}' WHERE camp='${VAL2}' and number='${VAL1}'
-
+```
 Применим изменения
-asterisk -rx "reload"
-
+```asterisk -rx "reload"
+```
 Конфиг для autodialer
-vi /etc/asterisk/extensions_autodialer.conf
+```vi /etc/asterisk/extensions_autodialer.conf
+```
 ; ПРИМЕЧАНИЕ: Для теста, в меню используется синтезатор речи Festival, вы можете записать качественное аудио и заменить строки со ссылками на ваши аудиофайлы
 ```
 [autodialer]
@@ -357,18 +359,23 @@ crontab -e
 
 Обратите внимание на параметр limit в скрипте, он задает ограничение строк номеров при чтении из б\д
 В данной строчке скрипта можно задать callerid по умолчанию если в б\д не задано значение
-[ "${callerid}" = "NULL" -o "${callerid}" = "" -o "${callerid}" = "0" ] && callerid="8812"
+```[ "${callerid}" = "NULL" -o "${callerid}" = "" -o "${callerid}" = "0" ] && callerid="8812"
+```
 Скрипт можно запускать вручную с параметрами запуска
 Обычный запуск, прозвон по всем кампаниям
-./autodialer.sh -a
+```./autodialer.sh -a
+```
 
 Запуск прозвона для компании CampTest
+
 ./autodialer.sh CampTest
 
 Запуск создания Call файлов на определенное время\дату для компании CampTest
+
 ./autodialer.sh CampTest -t
 
 Запуск создания Call файлов на определенную дату для всех кампаний
+
 ./autodialer.sh -t
 
 
@@ -379,10 +386,15 @@ crontab -e
 Автоответы для громкого оповещения
 Принцип работы: Звоним на номер автообзвона *999, записываем голосовое сообщение и выбираем запуск автообзвона, для разных телефонов существуют разные опции автоответа - это настраивается на конкретном телефонном аппарате, после чего при звонке на данный телефон, через asterisk ему (для данного телефона) необходимо передать опцию автоответа по громкой связи (опции для каждого телефона разные), ниже приведен список опций для разных моделей, проверяется перебором, какая опция подходит.
 Опции:
+
 SIPAddHeader(Alert-Info: Ring Answer) ; AudioCodes 420HD и GrandStream GXP-1625
+
 SIPAddHeader(Alert-Info: Info=Alert-Autoanswer)
+
 SIPAddHeader(Call-Info:\;Answer-After=0)
+
 SIPAddHeader(P-Auto-Answer: normal)
+
 SIPAddHeader(Answer-Mode: Auto) ; Avaya 9608-9611G
 
 Источник информации: http://blog.koobik.net/asterisk-emergency-notification-system/
@@ -394,6 +406,7 @@ SIPAddHeader(Answer-Mode: Auto) ; Avaya 9608-9611G
 SET HEADSYS 0
 
 Далее добавить в диалплан опцию для телефона
+
 vi /etc/asterisk/extensions_custom.conf
 ```
 exten => _XXX,1,NoOp(Внутренний вызов с ${CALLERID(num)} -> на номер ${EXTEN})
@@ -413,11 +426,16 @@ exten => _XXX,1,NoOp(Внутренний вызов с ${CALLERID(num)} -> на
 Далее, для того чтобы опция (same => n,ExecIF($[ "${CALLERID(name)}" == "Answer-Mode: Auto" ]?SIPAddHeader(Answer-Mode: Auto)); Avaya 9608G) отработала её еще нужно внести в б\д, в нужной компании в поле fullname, в принципе вы можете задать там любое значение , например, имя кампании или имя телефонов avaya, только поменяйте тогда условие в диалплане на нужное!
 
 Источник вдохновения
+
 https://asterisk-pbx.ru/wiki/soft/call_center/asterisk_autodialer
 
 
 В РАЗРАБОТКЕ:
+
 1) Добавить возморжность прозвона по часам, через нескольео часов, интервал обзвона (складывать минуты и часы)
+
 2) Добавить статусы ответов с отправкой на email в случае, если абонент не ответил (установка postfix)
+
 3) Частичная установка ПО автопрозвона скриптом autodialer.sh (autodialer.sh -I)
+
 4) Добавление групп и импорт номеров в б\д скриптом autodialer.sh (autodialer.sh -igr Test и autodialer.sh -ixml Test /tmp/campname.csv)

@@ -3,8 +3,6 @@ Bash Asterisk autodialer script
 
 #
 
-[//]: # ( Это комментарий! )
-
 Создадим б\д
 ```
 create database autodialer;
@@ -442,12 +440,12 @@ exten => _XXX,1,NoOp(Внутренний вызов с ${CALLERID(num)} -> на
 https://asterisk-pbx.ru/wiki/soft/call_center/asterisk_autodialer
 
 
-[//]: # В РАЗРАБОТКЕ:
+[//]: # (В РАЗРАБОТКЕ:
 
-[comment]: #1) Добавить возморжность прозвона по часам, через нескольео часов, интервал обзвона (складывать минуты и часы)
+1) Добавить возморжность прозвона по часам, через нескольео часов, интервал обзвона (складывать минуты и часы))
 
-[comment]: #2) Добавить статусы ответов с отправкой на email в случае, если абонент не ответил (установка postfix)
+2) Добавить статусы ответов с отправкой на email в случае, если абонент не ответил (установка postfix)
 
-[comment]: #3) Частичная установка ПО автопрозвона скриптом autodialer.sh (autodialer.sh -I)
+3) Частичная установка ПО автопрозвона скриптом autodialer.sh (autodialer.sh -I)
 
-[comment]: #4) Добавление групп и импорт номеров в б\д скриптом autodialer.sh (autodialer.sh -igr Test и autodialer.sh -ixml Test /tmp/campname.csv)
+4) Добавление групп и импорт номеров в б\д скриптом autodialer.sh (autodialer.sh -igr Test и autodialer.sh -ixml Test /tmp/campname.csv))

@@ -1,7 +1,7 @@
 # autodialer v"1.3.2(17.02.2020)" README:
 Bash Asterisk autodialer script
 
-Создадим б\д
+#Создадим б\д
 ```
 create database autodialer;
 grant all privileges on autodialer.* to autodialer@localhost identified by 'autodialer';

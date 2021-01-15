@@ -83,15 +83,18 @@ answer_status - 0, пусто или NULL, не учитывать статус 
 secure-file-priv = ""
 ```
 Перезапустите Mysql сервер.
-```systemctl restart mariadb
-```
+
+systemctl restart mariadb
+
 Установите привилегии FILE
 Подключитесь к командной строке Mysql.
-```mysql -p
-```
+
+mysql -p
+
 Установите привилегии.
-````grant file on *.* to autodialer@localhost identified by 'autodialer';
-````
+
+grant file on *.* to autodialer@localhost identified by 'autodialer';
+
 Проверьте привилегии каталога.
 ```
 mysql> SHOW VARIABLES LIKE "secure_file_priv";
@@ -190,8 +193,9 @@ max_connections => 100
 ```
 
 Настройка диалплана
-```vi /etc/asterisk/extensions_custom.conf
-```
+
+vi /etc/asterisk/extensions_custom.conf
+
 Тут лучше настроить, чтобы для autodialer подгружался дополнительный конфиг, но это не принципиально
 ```
 ; В начале файла подключим новый конфиг

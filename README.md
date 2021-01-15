@@ -2,6 +2,9 @@
 Bash Asterisk autodialer script
 
 #
+
+[//]: # ( Это комментарий! )
+
 Создадим б\д
 ```
 create database autodialer;
